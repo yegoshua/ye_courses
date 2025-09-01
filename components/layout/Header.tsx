@@ -87,7 +87,6 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
@@ -95,14 +94,10 @@ export function Header() {
               </div>
               <span className="font-bold text-xl">EduPlatform</span>
             </Link>
-
-            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <NavigationItems />
             </nav>
           </div>
-
-          {/* Desktop Auth Actions */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <DropdownMenu>
@@ -186,14 +181,8 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
 
-                <div className="mt-6 space-y-6">
-                  {/* Mobile Navigation */}
-                  <nav className="flex flex-col space-y-4">
-                    <NavigationItems />
-                  </nav>
-
-                  {/* Mobile Auth Section */}
-                  <div className="border-t pt-6">
+                <div className="space-y-6">
+                  <div>
                     {isAuthenticated ? (
                       <div className="space-y-4">
                         {/* User Info */}
@@ -211,11 +200,10 @@ export function Header() {
                           </div>
                         </div>
 
-                        {/* Mobile Menu Items */}
-                        <div className="space-y-2">
+                        <div className="space-y-4 px-2">
                           <Link
                             href="/my-courses"
-                            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             <div className="flex items-center gap-2">
@@ -228,19 +216,15 @@ export function Header() {
                               </Badge>
                             )}
                           </Link>
-                          
                           <Link
                             href="/"
-                            className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
+                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             <User className="h-4 w-4" />
                             <span>Profile</span>
                           </Link>
-                        </div>
-
-                        {/* Logout Button */}
-                        <Button
+                          <Button
                           variant="outline"
                           onClick={handleLogout}
                           className="w-full justify-start gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
@@ -248,9 +232,10 @@ export function Header() {
                           <LogOut className="h-4 w-4" />
                           Log out
                         </Button>
+                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-3 px-2">
                         <Button 
                           variant="outline" 
                           onClick={handleLogin} 
