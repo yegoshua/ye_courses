@@ -12,7 +12,7 @@ export function Footer() {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <BookOpen className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">EduPlatform</span>
+              <span className="font-bold text-xl">YeCourses</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Empowering learners worldwide with high-quality online courses from industry experts.
@@ -136,7 +136,7 @@ export function Footer() {
         <div className="border-t pt-8 mt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} EduPlatform. All rights reserved.
+              © {new Date().getFullYear()} YeCourses. All rights reserved.
             </p>
             <p className="text-sm text-muted-foreground">
               Made with ❤️ for learners everywhere

@@ -77,7 +77,7 @@ export function AuthForm() {
         const result = await dispatch(registerUser(data as RegisterFormData));
         if (result.meta.requestStatus === "fulfilled") {
           toast.success(
-            "Account created successfully! Welcome to EduPlatform!"
+            "Account created successfully! Welcome to YeCourses!"
           );
           dispatch(closeAuthForm());
           form.reset();
@@ -108,7 +108,7 @@ export function AuthForm() {
           <DialogDescription>
             {isLogin
               ? "Sign in to your account to continue learning"
-              : "Join thousands of learners on EduPlatform"}
+              : "Join thousands of learners on YeCourses"}
           </DialogDescription>
         </DialogHeader>
 

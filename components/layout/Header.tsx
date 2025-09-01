@@ -92,7 +92,7 @@ export function Header() {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <BookOpen className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-xl">EduPlatform</span>
+              <span className="font-bold text-xl">YeCourses</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               <NavigationItems />
@@ -177,7 +177,7 @@ export function Header() {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5" />
-                    EduPlatform
+                    YeCourses
                   </SheetTitle>
                 </SheetHeader>
 

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduPlatform - Learn with the Best",
+  title: "YeCourses - Learn with the Best",
   description: "Professional online learning platform with high-quality courses from industry experts.",
 };
 
