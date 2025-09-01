@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { VideoState, CourseProgress } from '../../types';
+import { VideoState } from '../../types';
 import { logout } from './authSlice';
 
 const initialState: VideoState = {

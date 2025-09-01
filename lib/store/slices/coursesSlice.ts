@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { CoursesState } from '../../types';
 import { MockAPI } from '../../api/mockApi';
-import { loginUser, registerUser, logout } from './authSlice';
+import { logout } from './authSlice';
 
 export const fetchCourses = createAsyncThunk(
   'courses/fetchCourses',

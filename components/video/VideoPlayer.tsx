@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { 
   Play, 
   Pause, 
@@ -23,7 +22,6 @@ import {
   setCurrentTime, 
   setDuration, 
   setVolume,
-  updateVideoState,
   saveProgress,
   loadProgress
 } from '@/lib/store/slices/videoSlice';
@@ -40,15 +38,12 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
   const course = useAppSelector((state) => selectCourseById(state, courseId));
   
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
   
   const [isBuffering, setIsBuffering] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
   const [hasError, setHasError] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [progressSaveTimeout, setProgressSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Load saved progress when course changes
@@ -64,7 +59,6 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
     if (!video || !course?.videoUrl) return;
 
     setHasError(false);
-    setIsLoaded(false);
     setIsBuffering(true);
     
     // Setup video source
@@ -75,7 +69,7 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
     const savedProgress = videoState.courseProgress[courseId];
     if (savedProgress && savedProgress.currentTime > 30) {
       video.currentTime = savedProgress.currentTime;
-      console.log(`🎬 Auto-resuming ${course.title} from ${Math.floor(savedProgress.currentTime)}s`);
+      // Auto-resuming video from saved progress
     }
 
     return () => {
@@ -91,7 +85,7 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
       video.removeAttribute('src');
       video.load();
     };
-  }, [course?.videoUrl, courseId, videoState.courseProgress, dispatch]);
+  }, [course?.videoUrl, courseId, videoState.courseProgress, videoState.volume, dispatch]);
 
   // Video event handlers
   useEffect(() => {
@@ -100,18 +94,15 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
 
     const handleLoadStart = () => {
       setIsBuffering(true);
-      setIsLoaded(false);
     };
 
     const handleLoadedData = () => {
       setIsBuffering(false);
-      setIsLoaded(true);
       setHasError(false);
     };
 
     const handleCanPlay = () => {
       setIsBuffering(false);
-      setIsLoaded(true);
     };
 
     const handleWaiting = () => setIsBuffering(true);
@@ -164,11 +155,10 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
       dispatch(setVolume(video.volume || 0));
     };
 
-    const handleError = (e: Event) => {
-      console.error('Video error:', e);
+    const handleError = () => {
+      // Video error occurred
       setHasError(true);
       setIsBuffering(false);
-      setIsLoaded(false);
     };
 
     video.addEventListener('loadstart', handleLoadStart);
@@ -223,61 +213,9 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
         clearTimeout(controlsTimeout);
       }
     };
-  }, [videoState.isPlaying, showControls]);
+  }, [videoState.isPlaying, showControls, controlsTimeout]);
 
-  const togglePlayPause = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (videoState.isPlaying) {
-      video.pause();
-    } else {
-      video.play();
-    }
-  };
-
-  const handleSeek = (value: number[]) => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    video.currentTime = value[0];
-    dispatch(setCurrentTime(value[0]));
-  };
-
-  const handleVolumeChange = (value: number[]) => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    const newVolume = value[0] / 100;
-    video.volume = newVolume;
-    dispatch(setVolume(newVolume));
-  };
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    video.muted = !video.muted;
-  };
-
-  const skip = (seconds: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    video.currentTime = Math.max(0, Math.min(video.currentTime + seconds, video.duration));
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      videoRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const formatTime = (time: number) => {
+  const formatTime = useMemo(() => (time: number) => {
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
     const seconds = Math.floor(time % 60);
@@ -286,14 +224,66 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
       return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const handleMouseMove = () => {
+  const togglePlayPause = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (videoState.isPlaying) {
+      video.pause();
+    } else {
+      video.play();
+    }
+  }, [videoState.isPlaying]);
+
+  const handleSeek = useCallback((value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    video.currentTime = value[0];
+    dispatch(setCurrentTime(value[0]));
+  }, [dispatch]);
+
+  const handleVolumeChange = useCallback((value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const newVolume = value[0] / 100;
+    video.volume = newVolume;
+    dispatch(setVolume(newVolume));
+  }, [dispatch]);
+
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    video.muted = !video.muted;
+  }, []);
+
+  const skip = useCallback((seconds: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    video.currentTime = Math.max(0, Math.min(video.currentTime + seconds, video.duration));
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      videoRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  const handleMouseMove = useCallback(() => {
     setShowControls(true);
     if (controlsTimeout) {
       clearTimeout(controlsTimeout);
     }
-  };
+  }, [controlsTimeout]);
 
   if (!course) {
     return (

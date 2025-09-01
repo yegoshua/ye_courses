@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { BookOpen, Play, Clock, Users } from 'lucide-react';
 import Link from 'next/link';
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks/redux';
 import { openAuthForm } from '@/lib/store/slices/uiSlice';
@@ -17,7 +16,7 @@ import { openVideoModal } from '@/lib/store/slices/uiSlice';
 import { setCurrentCourse } from '@/lib/store/slices/videoSlice';
 import { 
   selectIsAuthenticated, 
-  selectUser, 
+ 
   selectOwnedCourses,
   selectCoursesLoading
 } from '@/lib/store/selectors';
@@ -25,7 +24,6 @@ import {
 export function MyCourses() {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const user = useAppSelector(selectUser);
   const ownedCourses = useAppSelector(selectOwnedCourses);
   const loading = useAppSelector(selectCoursesLoading);
 
@@ -35,23 +33,23 @@ export function MyCourses() {
     }
   }, [isAuthenticated, dispatch]);
 
-  const handleWatchCourse = (courseId: string) => {
+  const handleWatchCourse = useCallback((courseId: string) => {
     dispatch(setCurrentCourse(courseId));
     dispatch(openVideoModal());
-  };
+  }, [dispatch]);
 
-  const formatPrice = (price: number) => {
+  const formatPrice = useMemo(() => (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     }).format(price);
-  };
+  }, []);
 
-  const formatNumber = (num: number) => {
+  const formatNumber = useMemo(() => (num: number) => {
     return new Intl.NumberFormat('en-US').format(num);
-  };
+  }, []);
 
-  const getLevelColor = (level: string) => {
+  const getLevelColor = useMemo(() => (level: string) => {
     switch (level) {
       case 'Beginner':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
@@ -62,7 +60,7 @@ export function MyCourses() {
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
-  };
+  }, []);
 
   if (!isAuthenticated) {
     return (

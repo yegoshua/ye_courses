@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Search } from "lucide-react";
 
 import {
@@ -46,11 +46,12 @@ export function CourseList() {
     dispatch(fetchCourses());
   }, [dispatch]);
 
-  const categories = Array.from(
-    new Set(courses.map((course) => course.category))
+  const categories = useMemo(() => 
+    Array.from(new Set(courses.map((course) => course.category))),
+    [courses]
   );
 
-  const filteredAndSortedCourses = courses
+  const filteredAndSortedCourses = useMemo(() => courses
     .filter((course) => {
       const matchesSearch =
         course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +85,7 @@ export function CourseList() {
         default:
           return 0;
       }
-    });
+    }), [courses, searchTerm, filterLevel, categoryFilter, sortBy]);
 
   if (error) {
     return (

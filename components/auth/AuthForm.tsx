@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -44,7 +44,7 @@ export function AuthForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isLogin = authMode === "login";
-  const schema = isLogin ? loginSchema : registerSchema;
+  const schema = useMemo(() => isLogin ? loginSchema : registerSchema, [isLogin]);
 
   const form = useForm<
     LoginFormData | RegisterFormData
@@ -64,7 +64,7 @@ export function AuthForm() {
     mode: 'onChange',
   });
 
-  const onSubmit = async (data: LoginFormData | RegisterFormData) => {
+  const onSubmit = useCallback(async (data: LoginFormData | RegisterFormData) => {
     try {
       if (isLogin) {
         const result = await dispatch(loginUser(data as LoginFormData));
@@ -83,20 +83,20 @@ export function AuthForm() {
           form.reset();
         }
       }
-    } catch (err) {
-      console.error("Auth error:", err);
+    } catch {
+      // Auth error occurred
     }
-  };
+  }, [isLogin, dispatch, form]);
 
-  const handleModeToggle = () => {
+  const handleModeToggle = useCallback(() => {
     dispatch(toggleAuthMode());
     form.reset();
-  };
+  }, [dispatch, form]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     dispatch(closeAuthForm());
     form.reset();
-  };
+  }, [dispatch, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

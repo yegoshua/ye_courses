@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { Filter, Search, X } from "lucide-react";
@@ -39,7 +40,7 @@ interface CourseFiltersProps {
   onClearFilters: () => void;
 }
 
-export function CourseFilters({
+function CourseFiltersComponent({
   searchTerm,
   sortBy,
   filterLevel,
@@ -220,3 +221,5 @@ export function CourseFilters({
     </div>
   );
 }
+
+export const CourseFilters = React.memo(CourseFiltersComponent);

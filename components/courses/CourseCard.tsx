@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Star, Clock, Users, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +30,7 @@ interface CourseCardProps {
   course: Course;
 }
 
-export function CourseCard({ course }: CourseCardProps) {
+function CourseCardComponent({ course }: CourseCardProps) {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const isOwned = useAppSelector((state) =>
@@ -42,7 +43,32 @@ export function CourseCard({ course }: CourseCardProps) {
     selectCourseWatchPercentage(state, course.id)
   );
 
-  const handlePurchase = async () => {
+  // Memoized utility functions
+  const formatPrice = useMemo(() => (price: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price);
+  }, []);
+
+  const formatNumber = useMemo(() => (num: number) => {
+    return new Intl.NumberFormat("en-US").format(num);
+  }, []);
+
+  const getLevelColor = useMemo(() => (level: Course["level"]) => {
+    switch (level) {
+      case "Beginner":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "Intermediate":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "Advanced":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+    }
+  }, []);
+
+  const handlePurchase = useCallback(async () => {
     if (!isAuthenticated) {
       dispatch(openAuthForm("login"));
       return;
@@ -59,47 +85,24 @@ export function CourseCard({ course }: CourseCardProps) {
         toast.error(result.message);
       }
     } catch (error) {
-      console.error("💥 Purchase error:", error);
+      // Purchase error occurred
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Failed to purchase course. Please try again.";
       toast.error(errorMessage);
     }
-  };
+  }, [isAuthenticated, dispatch, course.id]);
 
-  const handleWatchCourse = () => {
+  const handleWatchCourse = useCallback(() => {
     dispatch(setCurrentCourse(course.id));
     dispatch(openVideoModal());
-  };
+  }, [dispatch, course.id]);
 
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     handleWatchCourse();
-  };
+  }, [handleWatchCourse]);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price);
-  };
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("en-US").format(num);
-  };
-
-  const getLevelColor = (level: Course["level"]) => {
-    switch (level) {
-      case "Beginner":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "Intermediate":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "Advanced":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
-    }
-  };
 
   return (
     <Card 
@@ -249,3 +252,5 @@ export function CourseCard({ course }: CourseCardProps) {
     </Card>
   );
 }
+
+export const CourseCard = React.memo(CourseCardComponent);
