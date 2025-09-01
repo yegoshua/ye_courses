@@ -1,4 +1,20 @@
+# Test Task for MB Digital
+
+This project is a test task from Yegor Slobodyanik for MB Digital company.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Features
+
+Based on the project structure, here are some of the implemented and planned features:
+
+*   **Authentication**: User registration and login.
+*   **Course Browsing**: A page to see available courses.
+*   **My Courses**: A dedicated section for users to see the courses they have enrolled in.
+*   **Video Player**: For viewing course content.
+*   **State Management**: Using a client-side store for managing application state.
+*   **API Layer**: A structured way to handle API requests to a backend.
+*   **UI Components**: A component library built with shadcn/ui.
 
 ## Getting Started
 
