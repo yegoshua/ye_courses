@@ -1,12 +1,12 @@
 import { Layout } from '@/components/layout/Layout';
-import { CourseList } from '@/components/courses/CourseList';
+import { MyCourses } from '@/components/courses/MyCourses';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { VideoModal } from '@/components/video/VideoModal';
 
-export default function Home() {
+export default function MyCoursesPage() {
   return (
     <Layout>
-      <CourseList />
+      <MyCourses />
       <AuthForm />
       <VideoModal />
     </Layout>

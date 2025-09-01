@@ -1,8 +1,6 @@
 import { Course, User, LoginCredentials, RegisterCredentials, PurchaseResult } from '../types';
 import { mockCourses } from '../data/courses';
 
-const MOCK_USERS = new Map<string, User>();
-
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const shouldFail = (successRate: number = 0.9) => Math.random() > successRate;
@@ -29,39 +27,31 @@ export class MockAPI {
     return course || null;
   }
 
-  static async login(credentials: LoginCredentials): Promise<User> {
+  static async login(credentials: LoginCredentials): Promise<User> {    
     await delay(Math.random() * 1000 + 800);
     
     if (shouldFail(0.95)) {
-      throw new Error('Login failed. Please check your credentials.');
+      throw new Error('Login failed. Please try again.');
     }
 
-    const existingUser = Array.from(MOCK_USERS.values()).find(
-      user => user.email === credentials.email
-    );
-
-    if (!existingUser) {
-      throw new Error('Invalid email or password.');
-    }
-
-    return existingUser;
+    const user: User = {
+      id: Date.now().toString(),
+      email: credentials.email,
+      name: credentials.email.split('@')[0], 
+      purchasedCourses: [],
+      createdAt: new Date().toISOString()
+    };
+    return user;
   }
 
   static async register(credentials: RegisterCredentials): Promise<User> {
     await delay(Math.random() * 1200 + 800);
     
-    if (shouldFail(0.92)) {
+    if (shouldFail(0.95)) {
       throw new Error('Registration failed. Please try again.');
     }
 
-    const existingUser = Array.from(MOCK_USERS.values()).find(
-      user => user.email === credentials.email
-    );
-
-    if (existingUser) {
-      throw new Error('An account with this email already exists.');
-    }
-
+    // Simply create and return a user object - no duplicate checking needed for demo
     const newUser: User = {
       id: Date.now().toString(),
       email: credentials.email,
@@ -70,11 +60,10 @@ export class MockAPI {
       createdAt: new Date().toISOString()
     };
 
-    MOCK_USERS.set(newUser.id, newUser);
     return newUser;
   }
 
-  static async purchaseCourse(courseId: string, userId: string): Promise<PurchaseResult> {
+  static async purchaseCourse(courseId: string): Promise<PurchaseResult> {
     await delay(Math.random() * 1500 + 1000);
     
     if (shouldFail(0.9)) {
@@ -85,16 +74,7 @@ export class MockAPI {
       };
     }
 
-    const user = MOCK_USERS.get(userId);
     const course = mockCourses.find(c => c.id === courseId);
-
-    if (!user) {
-      return {
-        success: false,
-        courseId,
-        message: 'User not found. Please log in again.'
-      };
-    }
 
     if (!course) {
       return {
@@ -103,18 +83,6 @@ export class MockAPI {
         message: 'Course not found.'
       };
     }
-
-    if (user.purchasedCourses.includes(courseId)) {
-      return {
-        success: false,
-        courseId,
-        message: 'You already own this course.'
-      };
-    }
-
-    user.purchasedCourses.push(courseId);
-    MOCK_USERS.set(userId, user);
-
     return {
       success: true,
       courseId,
@@ -122,12 +90,6 @@ export class MockAPI {
     };
   }
 
-  static async getUserPurchases(userId: string): Promise<string[]> {
-    await delay(Math.random() * 300 + 200);
-    
-    const user = MOCK_USERS.get(userId);
-    return user?.purchasedCourses || [];
-  }
 
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

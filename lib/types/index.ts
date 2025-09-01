@@ -41,7 +41,6 @@ export interface CoursesState {
   courses: Course[];
   loading: boolean;
   error: string | null;
-  purchasedCourses: string[];
   purchaseLoading: Record<string, boolean>;
 }
 

@@ -4,7 +4,7 @@ import { RootState } from '../index';
 export const selectCourses = (state: RootState) => state.courses.courses;
 export const selectCoursesLoading = (state: RootState) => state.courses.loading;
 export const selectCoursesError = (state: RootState) => state.courses.error;
-export const selectPurchasedCourses = (state: RootState) => state.courses.purchasedCourses;
+export const selectPurchasedCourses = (state: RootState) => state.auth.user?.purchasedCourses || [];
 export const selectPurchaseLoading = (state: RootState) => state.courses.purchaseLoading;
 
 export const selectUser = (state: RootState) => state.auth.user;

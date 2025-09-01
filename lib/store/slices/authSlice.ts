@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, User, LoginCredentials, RegisterCredentials } from '../../types';
 import { MockAPI } from '../../api/mockApi';
+import { purchaseCourse } from './coursesSlice';
 
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
@@ -53,6 +54,11 @@ const authSlice = createSlice({
       if (state.user) {
         state.user.purchasedCourses = action.payload;
       }
+    },
+    addPurchasedCourse: (state, action: PayloadAction<string>) => {
+      if (state.user && !state.user.purchasedCourses.includes(action.payload)) {
+        state.user.purchasedCourses.push(action.payload);
+      }
     }
   },
   extraReducers: (builder) => {
@@ -82,9 +88,17 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(purchaseCourse.fulfilled, (state, action) => {
+        if (state.user && action.payload.success) {
+          const courseId = action.payload.courseId;
+          if (!state.user.purchasedCourses.includes(courseId)) {
+            state.user.purchasedCourses.push(courseId);
+          }
+        }
       });
   }
 });
 
-export const { logout, clearError, setUser, updateUserPurchases } = authSlice.actions;
+export const { logout, clearError, setUser, updateUserPurchases, addPurchasedCourse } = authSlice.actions;
 export default authSlice.reducer;

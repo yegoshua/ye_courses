@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Course, CoursesState, PurchaseResult } from '../../types';
+import { CoursesState } from '../../types';
 import { MockAPI } from '../../api/mockApi';
+import { loginUser, registerUser, logout } from './authSlice';
 
 export const fetchCourses = createAsyncThunk(
   'courses/fetchCourses',
@@ -31,9 +32,9 @@ export const fetchCourseById = createAsyncThunk(
 
 export const purchaseCourse = createAsyncThunk(
   'courses/purchaseCourse',
-  async ({ courseId, userId }: { courseId: string; userId: string }, { rejectWithValue }) => {
+  async (courseId: string, { rejectWithValue }) => {
     try {
-      const result = await MockAPI.purchaseCourse(courseId, userId);
+      const result = await MockAPI.purchaseCourse(courseId);
       return result;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Purchase failed');
@@ -45,7 +46,6 @@ const initialState: CoursesState = {
   courses: [],
   loading: false,
   error: null,
-  purchasedCourses: [],
   purchaseLoading: {}
 };
 
@@ -56,14 +56,6 @@ const coursesSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    setPurchasedCourses: (state, action: PayloadAction<string[]>) => {
-      state.purchasedCourses = action.payload;
-    },
-    addPurchasedCourse: (state, action: PayloadAction<string>) => {
-      if (!state.purchasedCourses.includes(action.payload)) {
-        state.purchasedCourses.push(action.payload);
-      }
-    }
   },
   extraReducers: (builder) => {
     builder
@@ -97,22 +89,24 @@ const coursesSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(purchaseCourse.pending, (state, action) => {
-        const courseId = action.meta.arg.courseId;
+        const courseId = action.meta.arg; // Now courseId is the direct argument
         state.purchaseLoading[courseId] = true;
       })
       .addCase(purchaseCourse.fulfilled, (state, action) => {
         const { courseId } = action.payload;
         state.purchaseLoading[courseId] = false;
-        if (action.payload.success) {
-          state.purchasedCourses.push(courseId);
-        }
+        // Note: purchased courses are now managed in auth slice
       })
       .addCase(purchaseCourse.rejected, (state, action) => {
-        const courseId = action.meta.arg.courseId;
+        const courseId = action.meta.arg; // Now courseId is the direct argument
         state.purchaseLoading[courseId] = false;
+      })
+      .addCase(logout, (state) => {
+        // Clear purchase loading states on logout
+        state.purchaseLoading = {};
       });
   }
 });
 
-export const { clearError, setPurchasedCourses, addPurchasedCourse } = coursesSlice.actions;
+export const { clearError } = coursesSlice.actions;
 export default coursesSlice.reducer;

@@ -9,8 +9,9 @@ import uiReducer from './slices/uiSlice';
 
 const persistConfig = {
   key: 'root',
+  version: 1, // Increment this to invalidate old cache
   storage,
-  whitelist: ['auth', 'courses'] 
+  whitelist: ['auth'] // Remove 'courses' to always fetch fresh data
 };
 
 const videoPersistConfig = {
