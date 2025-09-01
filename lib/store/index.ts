@@ -17,7 +17,7 @@ const persistConfig = {
 const videoPersistConfig = {
   key: 'video',
   storage,
-  whitelist: ['currentTime', 'volume']
+  whitelist: ['volume', 'courseProgress']
 };
 
 const rootReducer = combineReducers({

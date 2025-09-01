@@ -22,12 +22,20 @@ export interface User {
   createdAt: string;
 }
 
+export interface CourseProgress {
+  currentTime: number;
+  duration: number;
+  lastWatched: string;
+  completed: boolean;
+}
+
 export interface VideoState {
   courseId: string | null;
   isPlaying: boolean;
   currentTime: number;
   duration: number;
   volume: number;
+  courseProgress: Record<string, CourseProgress>;
 }
 
 export interface AuthState {

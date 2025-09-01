@@ -23,7 +23,9 @@ import {
   setCurrentTime, 
   setDuration, 
   setVolume,
-  updateVideoState
+  updateVideoState,
+  saveProgress,
+  loadProgress
 } from '@/lib/store/slices/videoSlice';
 import { selectVideoState, selectCourseById } from '@/lib/store/selectors';
 
@@ -47,6 +49,14 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [progressSaveTimeout, setProgressSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // Load saved progress when course changes
+  useEffect(() => {
+    if (courseId) {
+      dispatch(loadProgress(courseId));
+    }
+  }, [courseId, dispatch]);
 
   // Initialize video
   useEffect(() => {
@@ -57,17 +67,31 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
     setIsLoaded(false);
     setIsBuffering(true);
     
-    // Simple video source setup
+    // Setup video source
     video.src = course.videoUrl;
-    video.currentTime = videoState.currentTime;
     video.volume = videoState.volume;
+    
+    // Auto-resume from saved progress (if >30 seconds)
+    const savedProgress = videoState.courseProgress[courseId];
+    if (savedProgress && savedProgress.currentTime > 30) {
+      video.currentTime = savedProgress.currentTime;
+      console.log(`🎬 Auto-resuming ${course.title} from ${Math.floor(savedProgress.currentTime)}s`);
+    }
 
     return () => {
-      // Cleanup
+      // Save progress before cleanup
+      if (video.currentTime > 0 && video.duration > 0) {
+        dispatch(saveProgress({
+          courseId,
+          currentTime: video.currentTime,
+          duration: video.duration
+        }));
+      }
+      
       video.removeAttribute('src');
       video.load();
     };
-  }, [course?.videoUrl]);
+  }, [course?.videoUrl, courseId, videoState.courseProgress, dispatch]);
 
   // Video event handlers
   useEffect(() => {
@@ -98,7 +122,25 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
     };
 
     const handleTimeUpdate = () => {
-      dispatch(setCurrentTime(video.currentTime || 0));
+      const currentTime = video.currentTime || 0;
+      dispatch(setCurrentTime(currentTime));
+      
+      // Throttled progress saving (every 5 seconds)
+      if (progressSaveTimeout) {
+        clearTimeout(progressSaveTimeout);
+      }
+      
+      const timeout = setTimeout(() => {
+        if (video.duration > 0) {
+          dispatch(saveProgress({
+            courseId,
+            currentTime: video.currentTime,
+            duration: video.duration
+          }));
+        }
+      }, 5000);
+      
+      setProgressSaveTimeout(timeout);
     };
 
     const handlePlay = () => {
@@ -107,6 +149,15 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
 
     const handlePause = () => {
       dispatch(setIsPlaying(false));
+      
+      // Immediately save progress when pausing
+      if (video.duration > 0) {
+        dispatch(saveProgress({
+          courseId,
+          currentTime: video.currentTime,
+          duration: video.duration
+        }));
+      }
     };
 
     const handleVolumeChange = () => {
@@ -133,6 +184,11 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
     video.addEventListener('error', handleError);
 
     return () => {
+      // Clean up progress save timeout
+      if (progressSaveTimeout) {
+        clearTimeout(progressSaveTimeout);
+      }
+      
       video.removeEventListener('loadstart', handleLoadStart);
       video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('canplay', handleCanPlay);
@@ -145,7 +201,7 @@ export function VideoPlayer({ courseId, className = '' }: VideoPlayerProps) {
       video.removeEventListener('volumechange', handleVolumeChange);
       video.removeEventListener('error', handleError);
     };
-  }, [dispatch]);
+  }, [dispatch, courseId, progressSaveTimeout]);
 
   // Control visibility
   useEffect(() => {

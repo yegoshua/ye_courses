@@ -20,9 +20,9 @@ import { setCurrentCourse } from "@/lib/store/slices/videoSlice";
 import { openAuthForm } from "@/lib/store/slices/uiSlice";
 import {
   selectIsAuthenticated,
-  selectUser,
   selectIsCoursePurchased,
   selectIsPurchaseLoading,
+  selectCourseWatchPercentage,
 } from "@/lib/store/selectors";
 
 interface CourseCardProps {
@@ -32,12 +32,14 @@ interface CourseCardProps {
 export function CourseCard({ course }: CourseCardProps) {
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-  const user = useAppSelector(selectUser);
   const isOwned = useAppSelector((state) =>
     selectIsCoursePurchased(state, course.id)
   );
   const isPurchasing = useAppSelector((state) =>
     selectIsPurchaseLoading(state, course.id)
+  );
+  const watchPercentage = useAppSelector((state) =>
+    selectCourseWatchPercentage(state, course.id)
   );
 
   const handlePurchase = async () => {
@@ -157,6 +159,16 @@ export function CourseCard({ course }: CourseCardProps) {
               <span>{course.rating}</span>
             </div>
           </div>
+
+          {/* Progress Bar */}
+          {watchPercentage > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+              <div 
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${watchPercentage}%` }}
+              />
+            </div>
+          )}
         </div>
       </CardHeader>
 
@@ -194,7 +206,23 @@ export function CourseCard({ course }: CourseCardProps) {
             {formatPrice(course.price)}
           </div>
 
-          <div className="flex gap-2">            
+          <div className="flex gap-2">
+            {isOwned && (
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleWatchCourse();
+              }} 
+              variant="outline"
+              className="gap-2 flex-1" 
+              size="sm"
+            >
+              {watchPercentage > 5 ? "Continue" : "Watch now"}
+              {watchPercentage > 5 && (
+                <span className="text-xs opacity-75">({watchPercentage}%)</span>
+              )}
+            </Button>
+            )}
             {!isOwned && (
               <Button
                 onClick={(e) => {

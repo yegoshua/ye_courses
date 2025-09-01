@@ -50,3 +50,19 @@ export const selectIsPurchaseLoading = createSelector(
   [selectPurchaseLoading, (_: RootState, courseId: string) => courseId],
   (purchaseLoading, courseId) => Boolean(purchaseLoading[courseId])
 );
+
+export const selectCourseProgress = (state: RootState) => state.video.courseProgress;
+
+export const selectCourseProgressById = createSelector(
+  [selectCourseProgress, (_: RootState, courseId: string) => courseId],
+  (courseProgress, courseId) => courseProgress[courseId] || null
+);
+
+export const selectCourseWatchPercentage = createSelector(
+  [selectCourseProgress, (_: RootState, courseId: string) => courseId],
+  (courseProgress, courseId) => {
+    const progress = courseProgress[courseId];
+    if (!progress || progress.duration === 0) return 0;
+    return Math.round((progress.currentTime / progress.duration) * 100);
+  }
+);
